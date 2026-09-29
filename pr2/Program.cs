@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Numerics;
-using System.Xml.Linq;
 
 namespace pr2
 {
@@ -19,7 +17,7 @@ namespace pr2
         public string Name { get; set; }
         public decimal Price { get; set;  }
         public int Amount { get; set; }
-        public Category Category {  get; set; }   
+        public Category Category {  get; init; }   
         
         public Product(string name, decimal price, int amount, Category category) 
         {
@@ -80,31 +78,30 @@ namespace pr2
                 Console.WriteLine("5 - Продать товар");
                 Console.WriteLine("6 - Поиск товара");
                 Console.WriteLine("0 - Выход");
-                Console.Write("Выберите команду: ");
 
-                string user_input = Console.ReadLine();
+                int user_input = CheckInt("Выберите команду: ", 0);
 
                 switch (user_input)
                 {
-                    case "1":
+                    case 1:
                         PrintAllProduct();
                         break;
-                    case "2":
+                    case 2:
                         AddProduct();
                         break;
-                    case "3":
+                    case 3:
                         DelProduct();
                         break;
-                    case "4":
+                    case 4:
                         Postavka();
                         break;
-                    case "5":
+                    case 5:
                         SellProduct();
                         break;
-                    case "6":
+                    case 6:
                         SearchProduct();
                         break;
-                    case "0":
+                    case 0:
                         running = false;
                         Console.WriteLine("😘");
                         break;
@@ -121,43 +118,43 @@ namespace pr2
             foreach (Product p in products) { p.Print(); }
         }
 
-        static string CheckString()
+        static string CheckString(string text)
         {
-            string input;
+            
 
             while (true)
             {
-                Console.Write("Введите название: ");
-                input = Console.ReadLine();
+                Console.Write(text);
+                string? input = Console.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(input)) { Console.WriteLine("Ввод некорректен"); }
                 else { return input; }
             }
         }
 
-        static decimal CheckDecimal()
+        static decimal CheckDecimal(string text)
         {
             decimal value;
 
             while (true)
             {
-                Console.Write("Введите цену: ");
-                string input = Console.ReadLine();
+                Console.Write(text);
+                string? input = Console.ReadLine();
                 if (decimal.TryParse(input, out value) && value > 0) { return value; }
                 else { Console.WriteLine("Ввод некорректен!"); }
             }
         }
 
-        static int CheckInt(string text)
+        static int CheckInt(string text, int min)
         {
             int value;
 
             while (true)
             {
                 Console.Write(text);
-                string input = Console.ReadLine();
+                string? input = Console.ReadLine();
 
-                if (int.TryParse(input, out value) && value > 0) { return value; }
+                if (int.TryParse(input, out value) && value >= min) { return value; }
                 else { Console.WriteLine("Ввод некорректен!"); }
             }
         }
@@ -171,15 +168,15 @@ namespace pr2
                 Console.WriteLine("2 - Мебель");
                 Console.WriteLine("3 - Еда");
 
-                string input = Console.ReadLine();
+                int input = CheckInt("Ваш выбор: ", 1);
 
                 switch (input)
                 {
-                    case "1":
+                    case 1:
                         return Category.Техника;
-                    case "2":
+                    case 2:
                         return Category.Мебель;
-                    case "3":
+                    case 3:
                         return Category.Еда;
                     default:
                         Console.WriteLine("Некорректный ввод!");
@@ -190,36 +187,48 @@ namespace pr2
 
         static void AddProduct() 
         {            
-            string name = CheckString();
-            decimal price = CheckDecimal();
-            int amount = CheckInt("Введите количество: ");
+            string name = CheckString("Введите название: ");
+            decimal price = CheckDecimal("Введите цену: ");
+            int amount = CheckInt("Введите количество: ", 1);
             Category category = CheckEnum();
 
             products.Add(new Product(name, price, amount, category));
             Console.WriteLine($"Товар успешно добавлен!");
         }
 
+        static Product Check(int code)
+        {
+            Product? product = null;
+
+            foreach (Product p in products)
+            {
+                if (p.Id == code)
+                {
+                    return p;
+                }
+            }
+            return product;
+        }
         static void DelProduct() 
         {
             while (true)
             {
-                int index = CheckInt("Введите код: ");
+                Console.WriteLine("Для выхода нажмите 0");
+                int index = CheckInt("Введите код: ", 0);
 
-                Product del = null;
+                if (index == 0) return;
 
-                foreach (Product p in products)
-                {
-                    if (p.Id == index)
-                    {
-                        del = p;
-                    }
-                }
+                Product? del = Check(index);              
 
                 if (del != null)
                 {
                     Console.WriteLine($"Товар {del.Name} успешно удален!");
                     products.Remove(del);
                     break;
+                }
+                else if (del == null)
+                {
+                    return;
                 }
                 else
                 {
@@ -231,25 +240,25 @@ namespace pr2
         static void Postavka() 
         {
             while (true)
-            { 
-                int code = CheckInt("Выберите код для поставки: ");                
+            {
+                Console.WriteLine("Для выхода нажмите 0");
+                int code = CheckInt("Выберите код для поставки: ", 0);
 
-                Product findproduct = null;
+                if (code == 0) return;
 
-                foreach (Product product in products)
-                {
-                    if (product.Id == code)
-                    {
-                        findproduct = product;
-                    }
-                }
+                Product? findproduct = Check(code);
+
                 if (findproduct != null)
                 {
-                    int kolvo = CheckInt("Выберите количество для поставки: ");
+                    int kolvo = CheckInt("Выберите количество для поставки: ", 1);
 
                     findproduct.Amount += kolvo;
                     Console.WriteLine("Товар поставлен!");
                     break;
+                }
+                else if (findproduct == null)
+                {
+                    return;
                 }
                 else 
                 { 
@@ -262,21 +271,16 @@ namespace pr2
         {
             while (true)
             {
-                int code = CheckInt("Введите код товара для продажи: ");            
+                Console.WriteLine("Для выхода нажмите 0");
+                int code = CheckInt("Введите код товара для продажи: ", 0);
 
-                Product product = null;
+                if (code == 0) return;
 
-                foreach (Product p in products)
-                {
-                    if (p.Id == code)
-                    {
-                        product = p;
-                    }
-                }
-            
+                Product? product = Check(code);
+
                 if (product != null)
                 {
-                    int kolvo = CheckInt("Введите количество товара для продажи: ");
+                    int kolvo = CheckInt("Введите количество товара для продажи: ", 1);
 
                     if (product.Amount >= kolvo)
                     {
@@ -289,16 +293,91 @@ namespace pr2
                         Console.WriteLine("Товара недостаточно!");                        
                     }
                 }
+                else if (product == null)
+                {
+                    return;
+                }
                 else
                 {
                     Console.WriteLine("Товара с таким кодом не найдено!");                    
                 }
             }
-            
         }
 
         static void SearchProduct() 
-        {                
+        {
+            Console.WriteLine();
+            Console.WriteLine("Как искать: ");
+            Console.WriteLine("По коду - 1");
+            Console.WriteLine("По названию - 2");
+            Console.WriteLine("По категории - 3");
+            Console.WriteLine("Отмена - 0");
+            Console.WriteLine();
+
+            int search = CheckInt("Ваш выбор: ", 0);
+
+            switch (search)
+            {
+                case 1:
+                    {
+                        int code = CheckInt("Введите код: ", 1);
+
+                        Product product = Check(code);
+
+                        if (product != null)
+                        {
+                            product.Print();
+                            break;
+                        }
+                        Console.WriteLine("Товар не найден!");
+                            break;
+                    }
+                case 2:
+                    {
+                        string name = CheckString("Введите название (или его часть): ");
+                        bool found = false;
+
+                        foreach (Product prod in products)
+                        {
+                            if (prod.Name.ToLower().Contains(name.ToLower()))
+                            {
+                                prod.Print();
+                                found = true;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            Console.WriteLine("Товар не найден!");
+                        }
+                        break;
+                    }
+                case 3:
+                    {
+                        Category category = CheckEnum();
+                        bool found = false;
+
+                        foreach (Product p in products)
+                        {
+                            if (category == p.Category)
+                            {
+                                p.Print();
+                                found = true;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            Console.WriteLine("Товары в категории отсутствуют!");
+                        }
+                        break;
+                    }
+                case 0:
+                    break;
+                default:
+                    Console.WriteLine("Выбор только 1, 2 или 3!");
+                    break;
+            }
         }      
     }
 }
