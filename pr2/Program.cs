@@ -2,7 +2,6 @@
 
 namespace pr2
 {
-
     public enum Category
     {
         Техника,
@@ -37,9 +36,7 @@ namespace pr2
             Console.WriteLine("Остаток: " + Amount);
             Console.WriteLine("Категория: " + Category);
             Console.WriteLine("-----------------------");
-        }
-
-        
+        }       
     }
 
     class Program
@@ -119,9 +116,7 @@ namespace pr2
         }
 
         static string CheckString(string text)
-        {
-            
-
+        {          
             while (true)
             {
                 Console.Write(text);
@@ -226,10 +221,6 @@ namespace pr2
                     products.Remove(del);
                     break;
                 }
-                else if (del == null)
-                {
-                    return;
-                }
                 else
                 {
                     Console.WriteLine("Код товара не найден!");
@@ -255,10 +246,6 @@ namespace pr2
                     findproduct.Amount += kolvo;
                     Console.WriteLine("Товар поставлен!");
                     break;
-                }
-                else if (findproduct == null)
-                {
-                    return;
                 }
                 else 
                 { 
@@ -292,10 +279,6 @@ namespace pr2
                     {
                         Console.WriteLine("Товара недостаточно!");                        
                     }
-                }
-                else if (product == null)
-                {
-                    return;
                 }
                 else
                 {
